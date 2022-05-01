@@ -1,42 +1,36 @@
-import inquirer from 'inquirer';
-import fs from 'fs';
+import inquirer, { Answers } from 'inquirer';
+import * as fs from 'fs';
 import path from 'path';
-import * as child_process from 'child_process';
+import isValid from 'is-valid-path';
+import { LICENSES } from './license';
+import { installCommonPackageDependencies } from './dependencies';
+import { createIndexFile, createPackageJsonFile, createProjectDirectory, createTSConfigJsonFile, getDefaultAuthor } from './utils';
 
 /**
- * Using git config information return a string representing the default author.
- * The full author format is 'username <email>' but both fields may omitted if not set
- *
- * @returns The available git author information (username and/or email), or undefined if none exists
+ * Construct all questions to be passed to inquirer
  */
-function getDefaultAuthor(): string | undefined {
-    let gitUsername: string | undefined;
-    try {
-        gitUsername = child_process.execSync('git config --get user.name').toString().trim();
-    } catch(error) {
-        gitUsername = undefined;
-    }
-    let gitEmail: string | undefined;
-    try {
-        gitEmail = child_process.execSync('git config --get user.email').toString().trim();
-    } catch(error) {
-        gitEmail = undefined;
-    }
-    const name = ((gitUsername ? gitUsername : '') + (gitEmail ? ' <' + gitEmail + '>' : '')).trim();
-    return name === '' ? undefined : name;
-}
-
-const questions = [
+const QUESTIONS = [
     {
         type: 'input',
         name: 'projectName',
         message: 'Enter project name:',
+        filter(value: string): string {
+            return value.trim();
+        },
         validate(value: string): boolean | string {
-            if(value.trim() === '') {
-                return 'Please enter a non-blank project name';
+            const trimmedValue = value.trim();
+            if(trimmedValue === '') {
+                return 'Project name cannot be blank';
             }
-            if(fs.existsSync(path.join('.', value))) {
-                return 'A directory with that name already exists';
+            if(fs.existsSync(trimmedValue)) {
+                return `A directory with that name already exists: '${trimmedValue}'`;
+            }
+            if(!isValid(trimmedValue)) {
+                return `Project name is not a valid directory name: '${trimmedValue}'`;
+            }
+            //don't allow users to pass a path, enforce that this script is run in the desired parent directory
+            if(path.basename(trimmedValue) !== trimmedValue) {
+                return 'Cannot use a path for a project name. Please run this script in the desired parent directory and pass a project name only';
             }
             return true;
         }
@@ -58,28 +52,76 @@ const questions = [
         type: 'list',
         name: 'license',
         message: 'Which license would you like to use?',
-        choices: [
-            'MIT',
-            'ISC',
-            'GNU AGPLv3',
-            'GNU GPLv3',
-            'GNU LGPLv3',
-            'Apache 2.0',
-            'Boost Software License 1.0',
-            'Mozilla Public License 2.0',
-            'The Unlicense'
-        ],
+        choices: LICENSES.map(license => license.name),
         default: 'MIT'
+    },
+    {
+        type: 'input',
+        name: 'licenseFullName',
+        message: 'Please enter a full name for the license copywriter (required by the license you selected):',
+        filter(value: string): string {
+            return value.trim();
+        },
+        validate(value: string): boolean | string {
+            if(value === '') {
+                return 'Please enter a non-empty full name';
+            }
+            return true;
+        },
+        when(answers: Answers): boolean {
+            return LICENSES.find(license => license.name === answers.license)?.requiresFullName ?? false;
+        }
+    },
+    {
+        type: 'input',
+        name: 'licenseProgramDescription',
+        message: 'Please enter a short (less than 80 characters) description of the program (required by the license you selected):',
+        filter(value: string): string {
+            return value.trim();
+        },
+        validate(value: string): boolean | string {
+            if(value === '') {
+                return 'Please enter a non-empty program description';
+            }
+            if(value.length > 80) {
+                return 'Please enter a shorter description (less than 80 characters)';
+            }
+            return true;
+        },
+        when(answers: Answers): boolean {
+            return LICENSES.find(license => license.name === answers.license)?.requiresProgramDescription ?? false;
+        }
     },
     {
         type: 'confirm',
         name: 'useJest',
         message: 'Would you like to add unit testing support via Jest?',
         default: true
+    },
+    {
+        type: 'confirm',
+        name: 'addTypeDocSupport',
+        message: 'Would you like to add TypeDoc support (generates HTML documentation from TSDoc comments)?',
+        default: true
     }
 ];
 
-(async function main() {
-    const answers = await inquirer.prompt(questions);
-    console.log(answers);
+/**
+ * Prompt the user for all the inquirer questions and create the project based on the answers received
+ */
+(async function main(): Promise<void> {
+    const answers = await inquirer.prompt(QUESTIONS);
+    //create project dir and src dir
+    createProjectDirectory(answers.projectName);
+    //move into the new project directory we just created
+    process.chdir(answers.projectName);
+    //create package.json
+    createPackageJsonFile(answers);
+    //create tsconfig.json
+    createTSConfigJsonFile();
+    //create src/index.ts
+    createIndexFile();
+    //install all common dependencies
+    installCommonPackageDependencies(answers.packageManager);
+    console.log(`Your project '${answers.projectName}' has been fully set up and is ready to be used!`);
 })();
