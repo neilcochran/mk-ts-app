@@ -4,7 +4,14 @@ import path from 'path';
 import isValid from 'is-valid-path';
 import { LICENSES } from './license';
 import { installCommonPackageDependencies } from './dependencies';
-import { createIndexFile, createPackageJsonFile, createProjectDirectory, createTSConfigJsonFile, getDefaultAuthor } from './utils';
+import {
+    createESLintConfigJsonFile,
+    createIndexFile,
+    createPackageJsonFile,
+    createProjectDirectory,
+    createTSConfigJsonFile,
+    getDefaultAuthor
+} from './utils';
 
 /**
  * Construct all questions to be passed to inquirer
@@ -119,6 +126,8 @@ const QUESTIONS = [
     createPackageJsonFile(answers);
     //create tsconfig.json
     createTSConfigJsonFile();
+    //create .eslintrc.json
+    createESLintConfigJsonFile();
     //create src/index.ts
     createIndexFile();
     //install all common dependencies

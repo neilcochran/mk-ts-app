@@ -61,12 +61,28 @@ export function createPackageJsonFile(answers: Answers): void {
     }
 }
 
+/**
+ * Create a tsconfig.json file in the project root directory
+ */
 export function createTSConfigJsonFile(): void {
     console.log('*** Creating tsconfig.json ***');
     try {
         fs.copyFileSync(path.join(__dirname, '../assets/file-templates/tsconfig.json.template'), 'tsconfig.json');
     } catch(error) {
         console.log(`Error copying tsconfig.json into project: ${error}`);
+        exit(1);
+    }
+}
+
+/**
+ * Create a .eslintrc.json file in the project root directory
+ */
+export function createESLintConfigJsonFile(): void {
+    console.log('*** Creating .eslintrc.json ***');
+    try {
+        fs.copyFileSync(path.join(__dirname, '../assets/file-templates/.eslintrc.json.template'), '.eslintrc.json');
+    } catch(error) {
+        console.log(`Error copying .eslintrc.json into project: ${error}`);
         exit(1);
     }
 }
