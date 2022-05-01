@@ -2,7 +2,7 @@ import inquirer, { Answers } from 'inquirer';
 import * as fs from 'fs';
 import path from 'path';
 import isValid from 'is-valid-path';
-import { LICENSES } from './license';
+import { createLicenseFile, LICENSES } from './license';
 import { installCommonPackageDependencies } from './dependencies';
 import {
     createESLintConfigJsonFile,
@@ -59,7 +59,7 @@ const QUESTIONS = [
         type: 'list',
         name: 'license',
         message: 'Which license would you like to use?',
-        choices: LICENSES.map(license => license.name),
+        choices: LICENSES.map(license => license.displayName),
         default: 'MIT'
     },
     {
@@ -76,27 +76,7 @@ const QUESTIONS = [
             return true;
         },
         when(answers: Answers): boolean {
-            return LICENSES.find(license => license.name === answers.license)?.requiresFullName ?? false;
-        }
-    },
-    {
-        type: 'input',
-        name: 'licenseProgramDescription',
-        message: 'Please enter a short (less than 80 characters) description of the program (required by the license you selected):',
-        filter(value: string): string {
-            return value.trim();
-        },
-        validate(value: string): boolean | string {
-            if(value === '') {
-                return 'Please enter a non-empty program description';
-            }
-            if(value.length > 80) {
-                return 'Please enter a shorter description (less than 80 characters)';
-            }
-            return true;
-        },
-        when(answers: Answers): boolean {
-            return LICENSES.find(license => license.name === answers.license)?.requiresProgramDescription ?? false;
+            return LICENSES.find(license => license.displayName === answers.license)?.requiresFullName ?? false;
         }
     },
     {
@@ -122,6 +102,8 @@ const QUESTIONS = [
     createProjectDirectory(answers.projectName);
     //move into the new project directory we just created
     process.chdir(answers.projectName);
+    //create license file
+    createLicenseFile(answers);
     //create package.json
     createPackageJsonFile(answers);
     //create tsconfig.json

@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import { Answers } from 'inquirer';
 import path from 'path';
 import { exit } from 'process';
+import { LICENSES } from './license';
 
 /**
  * Using git config information return a string representing the default author.
@@ -45,7 +46,7 @@ export function createProjectDirectory(projectName: string): void {
 /**
  * Using the answers provided, create a package.json file in the project's root directory
  *
- * @param answers The answers obtained from the user via inquirer
+ * @param answers - The answers obtained from the user via inquirer
  */
 export function createPackageJsonFile(answers: Answers): void {
     try {
@@ -53,7 +54,11 @@ export function createPackageJsonFile(answers: Answers): void {
         let packageJsonContents = fs.readFileSync(path.join(__dirname, '../assets/file-templates/package.json.template')).toString();
         packageJsonContents = packageJsonContents.replace('[PROJECT]', answers.projectName);
         packageJsonContents = packageJsonContents.replace('[AUTHOR]', answers.author);
-        packageJsonContents = packageJsonContents.replace('[LICENSE]', answers.license);
+        const licenseName = LICENSES.find(license => license.displayName === answers.license)?.name;
+        if(!licenseName) {
+            throw new Error(`Could not find a license associated with the display name: '${answers.license}'`);
+        }
+        packageJsonContents = packageJsonContents.replace('[LICENSE]', licenseName);
         fs.writeFileSync('package.json', packageJsonContents);
     } catch(error) {
         console.log(`Could not create package.json file. Encountered: ${error}`);
