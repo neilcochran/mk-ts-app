@@ -8,7 +8,12 @@
     "url": "git+https://github.com/neilcochran/mk-ts-app.git"
   },
   "license": "MIT",
-  "keywords": ["generate", "project", "typescript project", "node project"],
+  "keywords": [
+    "generate",
+    "project",
+    "typescript project",
+    "node project"
+  ],
   "main": "dist/index.js",
   "scripts": {
     "lint": "eslint --fix --ext .ts \"src/**/*\"",
@@ -17,15 +22,18 @@
   },
   "devDependencies": {
     "@types/inquirer": "^8.2.1",
+    "@types/is-valid-path": "^0.1.0",
     "@types/node": "^17.0.30",
     "@typescript-eslint/eslint-plugin": "^5.21.0",
     "@typescript-eslint/parser": "^5.21.0",
     "eslint": "^8.14.0",
     "rimraf": "^3.0.2",
+    "ts-node": "^10.7.0",
     "typescript": "^4.6.4"
   },
   "dependencies": {
-    "inquirer": "^8.2.4"
+    "inquirer": "^8.2.4",
+    "is-valid-path": "^0.1.1"
   },
   "files": [
     "dist/**/*",
