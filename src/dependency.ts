@@ -31,7 +31,7 @@ const COMMON_DEPENDENCIES: Dependency[] = [
         saveDev: true
     },
     {
-        name: 'ts-watch',
+        name: 'tsc-watch',
         saveDev: true
     },
     {
