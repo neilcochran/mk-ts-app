@@ -1,9 +1,9 @@
 {
-    "name": "",
+    "name": "[PROJECT]",
     "version": "0.1.0",
     "description": "",
-    "author": "",
-    "license": "",
+    "author": "[AUTHOR]",
+    "license": "[LICENSE]",
     "main": "dist/index.js",
     "scripts": {
       "build": "tsc",
