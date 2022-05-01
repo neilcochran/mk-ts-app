@@ -3,15 +3,16 @@ import * as fs from 'fs';
 import path from 'path';
 import isValid from 'is-valid-path';
 import { createLicenseFile, LICENSES } from './license';
-import { installCommonPackageDependencies } from './dependencies';
+import { installCommonPackageDependencies } from './dependency';
+import { getDefaultAuthor } from './utils';
 import {
+    createChangelogFile,
     createESLintConfigJsonFile,
     createIndexFile,
     createPackageJsonFile,
     createProjectDirectory,
     createTSConfigJsonFile,
-    getDefaultAuthor
-} from './utils';
+} from './file-utils';
 
 /**
  * Construct all questions to be passed to inquirer
@@ -104,6 +105,8 @@ const QUESTIONS = [
     process.chdir(answers.projectName);
     //create license file
     createLicenseFile(answers);
+    //create CHANGELOG.md
+    createChangelogFile();
     //create package.json
     createPackageJsonFile(answers);
     //create tsconfig.json

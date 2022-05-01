@@ -76,7 +76,7 @@ export const LICENSES: License[] = [
 ];
 
 /**
- * Create the license file in the project root of the indicated license
+ * Create the license file in the project's root for the indicated license
  *
  * @param answers - The answers obtained from the user via inquirer
  */
