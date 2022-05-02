@@ -31,6 +31,10 @@ const COMMON_DEPENDENCIES: Dependency[] = [
         saveDev: true
     },
     {
+        name: 'tsc-watch',
+        saveDev: true
+    },
+    {
         name: 'eslint',
         saveDev: true
     },

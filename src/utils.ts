@@ -1,8 +1,6 @@
 import * as child_process from 'child_process';
-import * as fs from 'fs';
 import { Answers } from 'inquirer';
-import path from 'path';
-import { exit } from 'process';
+import os from 'os';
 
 /**
  * Using git config information return a string representing the default author.
@@ -28,58 +26,47 @@ export function getDefaultAuthor(): string | undefined {
 }
 
 /**
- * Create the project directory and its 'src' subdirectory
+ * Determines if the project should be opened. If it is to be opened and hasVSCodeCommand is true
+ * the project will be opened in VSCode. If it is to be opened and hasVSCodeCommand is false, it will be opened in
+ * the OS's native file explorer
  *
- * @param projectName - the project name used to create a new directory
+ * @param openProjAnswer - The Answers object containing the response to our openProject question
+*
+ * @param hasVSCodeCommand - If the users OS has the VSCode 'code' command available
  */
-export function createProjectDirectory(projectName: string): void {
-    console.log('*** Creating initial project directories ***');
-    try {
-        fs.mkdirSync(path.join(projectName, 'src'), { recursive: true });
-    } catch(error) {
-        console.error(`Error: Could not create project directory '${projectName}' encountered: ${error}`);
-        exit(1);
+export function openProject(openProjAnswer: Answers, hasVSCodeCommand: boolean): void {
+    if(openProjAnswer.openProject) {
+        if(hasVSCodeCommand) {
+            try {
+                child_process.execSync('code .');
+            } catch(error) {
+                console.log(`Failed to open project with VSCode due to: ${error}`);
+            }
+        }
+        else {
+            openFolderForOS();
+        }
     }
 }
 
 /**
- * Using the answers provided, create a package.json file in the project's root directory
- *
- * @param answers The answers obtained from the user via inquirer
+ * Open a folder in the OS's native file explorer
  */
-export function createPackageJsonFile(answers: Answers): void {
-    try {
-        //replace placeholder values in the package.json template before writing it to the project's root directory
-        let packageJsonContents = fs.readFileSync(path.join(__dirname, '../assets/file-templates/package.json.template')).toString();
-        packageJsonContents = packageJsonContents.replace('[PROJECT]', answers.projectName);
-        packageJsonContents = packageJsonContents.replace('[AUTHOR]', answers.author);
-        packageJsonContents = packageJsonContents.replace('[LICENSE]', answers.license);
-        fs.writeFileSync('package.json', packageJsonContents);
-    } catch(error) {
-        console.log(`Could not create package.json file. Encountered: ${error}`);
-        exit(1);
+function openFolderForOS(): void {
+    let command = '';
+    switch(os.type()) {
+        case 'Windows_NT':
+            command = 'explorer .';
+            break;
+        case 'Darwin':
+            command = 'open .';
+            break;
+        default: // default to linux
+            command = 'xdg-open .';
     }
-}
-
-export function createTSConfigJsonFile(): void {
-    console.log('*** Creating tsconfig.json ***');
     try {
-        fs.copyFileSync(path.join(__dirname, '../assets/file-templates/tsconfig.json.template'), 'tsconfig.json');
-    } catch(error) {
-        console.log(`Error copying tsconfig.json into project: ${error}`);
-        exit(1);
-    }
-}
-
-/**
- * Creates an 'src/index.ts' file with a simple main function
- */
-export function createIndexFile(): void {
-    console.log('*** Creating src/index.ts ***');
-    try {
-        fs.copyFileSync(path.join(__dirname, '../assets/file-templates/index.ts.template'), 'src/index.ts');
-    } catch(error) {
-        console.log(`Error copying index.ts into project: ${error}`);
-        exit(1);
+        child_process.execSync(command);
+    } catch (error) {
+        console.log(`Failed to open project due to: ${error}`);
     }
 }
