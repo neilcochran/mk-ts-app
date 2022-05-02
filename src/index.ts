@@ -1,10 +1,20 @@
-import inquirer, { Answers } from 'inquirer';
+import inquirer, { Answers, Question } from 'inquirer';
 import * as fs from 'fs';
 import path from 'path';
 import isValid from 'is-valid-path';
-import { LICENSES } from './license';
-import { installCommonPackageDependencies } from './dependencies';
-import { createIndexFile, createPackageJsonFile, createProjectDirectory, createTSConfigJsonFile, getDefaultAuthor } from './utils';
+import { createLicenseFile, LICENSES } from './license';
+import { getDefaultAuthor, openProject } from './utils';
+import {
+    createChangelogFile,
+    createESLintConfigJsonFile,
+    createIndexFile,
+    createPackageJsonFile,
+    createProjectDirectory,
+    createReadmeFile,
+    createTSConfigJsonFile,
+} from './file-utils';
+import * as commandExists from 'command-exists';
+import { installCommonDependencies, installOptionalDependencies } from './dependency';
 
 /**
  * Construct all questions to be passed to inquirer
@@ -52,7 +62,7 @@ const QUESTIONS = [
         type: 'list',
         name: 'license',
         message: 'Which license would you like to use?',
-        choices: LICENSES.map(license => license.name),
+        choices: LICENSES.map(license => license.displayName),
         default: 'MIT'
     },
     {
@@ -69,27 +79,7 @@ const QUESTIONS = [
             return true;
         },
         when(answers: Answers): boolean {
-            return LICENSES.find(license => license.name === answers.license)?.requiresFullName ?? false;
-        }
-    },
-    {
-        type: 'input',
-        name: 'licenseProgramDescription',
-        message: 'Please enter a short (less than 80 characters) description of the program (required by the license you selected):',
-        filter(value: string): string {
-            return value.trim();
-        },
-        validate(value: string): boolean | string {
-            if(value === '') {
-                return 'Please enter a non-empty program description';
-            }
-            if(value.length > 80) {
-                return 'Please enter a shorter description (less than 80 characters)';
-            }
-            return true;
-        },
-        when(answers: Answers): boolean {
-            return LICENSES.find(license => license.name === answers.license)?.requiresProgramDescription ?? false;
+            return LICENSES.find(license => license.displayName === answers.license)?.requiresFullName ?? false;
         }
     },
     {
@@ -115,13 +105,44 @@ const QUESTIONS = [
     createProjectDirectory(answers.projectName);
     //move into the new project directory we just created
     process.chdir(answers.projectName);
+    //create README.md file
+    createReadmeFile(answers);
+    //create license file
+    createLicenseFile(answers);
+    //create CHANGELOG.md
+    createChangelogFile();
     //create package.json
     createPackageJsonFile(answers);
     //create tsconfig.json
     createTSConfigJsonFile();
+    //create .eslintrc.json
+    createESLintConfigJsonFile();
     //create src/index.ts
     createIndexFile();
     //install all common dependencies
-    installCommonPackageDependencies(answers.packageManager);
+    installCommonDependencies(answers.packageManager);
+    //install any optional dependencies the user may have chosen
+    installOptionalDependencies(answers);
     console.log(`Your project '${answers.projectName}' has been fully set up and is ready to be used!`);
+
+    //Now that the project is set up - offer to open it.
+    let vsCodeCmdExists = false;
+    const openProjectQuestion: Question = {
+        type: 'confirm',
+        name: 'openProject',
+        default: true
+    };
+    //check if VSCode is available on the command line
+    if(commandExists.sync('code')) {
+        vsCodeCmdExists = true;
+        openProjectQuestion.message = 'Would you like to open the project now with VSCode?';
+    }
+    else {
+        openProjectQuestion.message = 'Would you like to the project location now?';
+    }
+    //prompt the user for the question and get the answer
+    const openProjectAnswer = await inquirer.prompt([openProjectQuestion]);
+    if(openProjectAnswer.openProject) {
+        openProject(openProjectAnswer, vsCodeCmdExists);
+    }
 })();
