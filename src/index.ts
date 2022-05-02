@@ -13,6 +13,7 @@ import {
     createTSConfigJsonFile,
 } from './file-utils';
 import * as commandExists from 'command-exists';
+import { installCommonDependencies, installOptionalDependencies } from './dependency';
 
 /**
  * Construct all questions to be passed to inquirer
@@ -116,23 +117,29 @@ const QUESTIONS = [
     //create src/index.ts
     createIndexFile();
     //install all common dependencies
-    //installCommonPackageDependencies(answers.packageManager);
+    installCommonDependencies(answers.packageManager);
+    //install any optional dependencies the user may have chosen
+    installOptionalDependencies(answers);
     console.log(`Your project '${answers.projectName}' has been fully set up and is ready to be used!`);
+
+    //Now that the project is set up - offer to open it.
     let vsCodeCmdExists = false;
-    const question: Question = {
+    const openProjectQuestion: Question = {
         type: 'confirm',
         name: 'openProject',
         default: true
     };
+    //check if VSCode is available on the command line
     if(commandExists.sync('code')) {
         vsCodeCmdExists = true;
-        question.message = 'Would you like to open the project now with VSCode?';
+        openProjectQuestion.message = 'Would you like to open the project now with VSCode?';
     }
     else {
-        question.message = 'Would you like to the project location now?';
+        openProjectQuestion.message = 'Would you like to the project location now?';
     }
-    const openAnswer = await inquirer.prompt([question]);
-    if(openAnswer.openProject) {
-        openProject(openAnswer, vsCodeCmdExists);
+    //prompt the user for the question and get the answer
+    const openProjectAnswer = await inquirer.prompt([openProjectQuestion]);
+    if(openProjectAnswer.openProject) {
+        openProject(openProjectAnswer, vsCodeCmdExists);
     }
 })();

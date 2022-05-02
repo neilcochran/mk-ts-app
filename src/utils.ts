@@ -1,4 +1,5 @@
 import * as child_process from 'child_process';
+import * as fs from 'fs';
 import { Answers } from 'inquirer';
 import os from 'os';
 
@@ -40,7 +41,7 @@ export function openProject(openProjAnswer: Answers, hasVSCodeCommand: boolean):
             try {
                 child_process.execSync('code .');
             } catch(error) {
-                console.log(`Failed to open project with VSCode due to: ${error}`);
+                console.error(`Failed to open project with VSCode due to: ${error}`);
             }
         }
         else {
@@ -67,6 +68,22 @@ function openFolderForOS(): void {
     try {
         child_process.execSync(command);
     } catch (error) {
-        console.log(`Failed to open project due to: ${error}`);
+        console.error(`Failed to open project due to: ${error}`);
+    }
+}
+
+/**
+ * Add a script to the package.json's scripts
+ *
+ * @param scriptName - The name of the script
+ * @param script - The contents of the script
+ */
+export function addScriptToPackageJson(scriptName: string, script: string): void {
+    try {
+        const packageJson = JSON.parse(fs.readFileSync('package.json').toString());
+        packageJson.scripts[scriptName] = script;
+        fs.writeFileSync('package.json', JSON.stringify(packageJson, undefined, 4));
+    } catch(error) {
+        console.error(`An error occurred adding to a script to package.json: ${error}`);
     }
 }
