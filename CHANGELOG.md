@@ -1,3 +1,6 @@
+## Version 0.4.0
+- Add `bin` field to `package.json` to allow running the package as a script
+
 ## Version 0.3.1
 - Update README for `mk-ts-app`
 
