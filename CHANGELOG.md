@@ -1,3 +1,6 @@
+## Version 0.4.1
+- Move `command-exists` from `devDependencies` to `dependencies` as it is needed at runtime
+
 ## Version 0.4.0
 - Add `bin` field to `package.json` to allow running the package as a script
 
