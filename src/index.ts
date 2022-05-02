@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import inquirer, { Answers, Question } from 'inquirer';
 import * as fs from 'fs';
 import path from 'path';
