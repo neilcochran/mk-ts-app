@@ -1,10 +1,9 @@
-import inquirer, { Answers } from 'inquirer';
+import inquirer, { Answers, Question } from 'inquirer';
 import * as fs from 'fs';
 import path from 'path';
 import isValid from 'is-valid-path';
 import { createLicenseFile, LICENSES } from './license';
-import { installCommonPackageDependencies } from './dependency';
-import { getDefaultAuthor } from './utils';
+import { getDefaultAuthor, openProject } from './utils';
 import {
     createChangelogFile,
     createESLintConfigJsonFile,
@@ -13,6 +12,7 @@ import {
     createProjectDirectory,
     createTSConfigJsonFile,
 } from './file-utils';
+import * as commandExists from 'command-exists';
 
 /**
  * Construct all questions to be passed to inquirer
@@ -116,6 +116,23 @@ const QUESTIONS = [
     //create src/index.ts
     createIndexFile();
     //install all common dependencies
-    installCommonPackageDependencies(answers.packageManager);
+    //installCommonPackageDependencies(answers.packageManager);
     console.log(`Your project '${answers.projectName}' has been fully set up and is ready to be used!`);
+    let vsCodeCmdExists = false;
+    const question: Question = {
+        type: 'confirm',
+        name: 'openProject',
+        default: true
+    };
+    if(commandExists.sync('code')) {
+        vsCodeCmdExists = true;
+        question.message = 'Would you like to open the project now with VSCode?';
+    }
+    else {
+        question.message = 'Would you like to the project location now?';
+    }
+    const openAnswer = await inquirer.prompt([question]);
+    if(openAnswer.openProject) {
+        openProject(openAnswer, vsCodeCmdExists);
+    }
 })();
