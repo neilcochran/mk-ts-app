@@ -20,6 +20,42 @@ export function createProjectDirectory(projectName: string): void {
 }
 
 /**
+ * Create the README.md file in the project's root
+ *
+ * @param answers - The answers obtained from the user via inquirer
+ */
+export function createReadmeFile(answers: Answers): void {
+    console.log('*** Creating README.md ***');
+    try {
+        let readmeContents = fs.readFileSync(path.join(__dirname, '../assets/file-templates/README.md.template')).toString();
+        //replace the project name placeholder
+        readmeContents = readmeContents.replace('[PROJECT]', answers.projectName);
+        //add details to the 'Usage' section based on which PackageManager is being used
+        let usagePlaceholder = `Using ${answers.packageManager}:\n`;
+        let usagePlaceholder2 = '';
+        switch(answers.packageManager) {
+            case 'npm':
+                usagePlaceholder += '```\nnpm run build\nnpm run start\n```\n';
+                usagePlaceholder2 += '```\nnpm run dev\n```\n';
+                break;
+            case 'yarn':
+                usagePlaceholder += '```\nyarn build\nyarn start\n```\n';
+                usagePlaceholder2 += '```\nyarn dev\n```\n';
+                break;
+            default:
+                throw new Error(`Unknown PackageManager encountered: ${answers.packageManager}`);
+        }
+        //add usage details
+        readmeContents = readmeContents.replace('[PLACEHOLDER]', usagePlaceholder);
+        readmeContents = readmeContents.replace('[PLACEHOLDER_2]', usagePlaceholder2);
+        //write the file to the project root
+        fs.writeFileSync('README.md', readmeContents);
+    } catch(error) {
+        console.error(`An error occurred creating the README file: ${error}`);
+    }
+}
+
+/**
  * Create the CHANGELOG.md file in the project's root
  */
 export function createChangelogFile(): void {

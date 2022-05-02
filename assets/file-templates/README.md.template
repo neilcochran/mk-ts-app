@@ -1,16 +1,11 @@
 # **[PROJECT]**
-[PROJECT] description
+_(Add your project description here)_
 
-## Installation
-```
-npm [PROJECT]
-```
-```
-yarn [PROJECT]
-```
-
-## Examples
-[PROJECT] examples
+## Usage
+To run this project, run the `build` script followed by the `start` script.
+[PLACEHOLDER]
+Alternatively, run the `dev` to enable live loading (via tsc-watch)
+[PLACEHOLDER_2]
 
 ## Versions
 View all versions of in the <a href="/CHANGELOG.md">CHANGELOG.md</a>

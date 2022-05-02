@@ -57,6 +57,7 @@ const COMMON_DEPENDENCIES: Dependency[] = [
  * Install a dependency using the specified package manager
  *
  * @param packageManager - the package manager to be used
+ *
  * @param dependency - the dependency to install
  */
 function addDependency(packageManager: PackageManager, dependency: Dependency): void {
