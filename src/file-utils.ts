@@ -27,7 +27,7 @@ export function createChangelogFile(): void {
     try {
         fs.copyFileSync(path.join(__dirname, '../assets/file-templates/CHANGELOG.md.template'), 'CHANGELOG.md');
     } catch(error) {
-        console.log(`Could not create CHANGELOG.md file. Encountered: ${error}`);
+        console.error(`Could not create CHANGELOG.md file. Encountered: ${error}`);
         exit(1);
     }
 }
@@ -50,7 +50,7 @@ export function createPackageJsonFile(answers: Answers): void {
         packageJsonContents = packageJsonContents.replace('[LICENSE]', licenseName);
         fs.writeFileSync('package.json', packageJsonContents);
     } catch(error) {
-        console.log(`Could not create package.json file. Encountered: ${error}`);
+        console.error(`Could not create package.json file. Encountered: ${error}`);
         exit(1);
     }
 }
@@ -63,7 +63,7 @@ export function createTSConfigJsonFile(): void {
     try {
         fs.copyFileSync(path.join(__dirname, '../assets/file-templates/tsconfig.json.template'), 'tsconfig.json');
     } catch(error) {
-        console.log(`Error copying tsconfig.json into project: ${error}`);
+        console.error(`Error copying tsconfig.json into project: ${error}`);
         exit(1);
     }
 }
@@ -76,7 +76,7 @@ export function createESLintConfigJsonFile(): void {
     try {
         fs.copyFileSync(path.join(__dirname, '../assets/file-templates/.eslintrc.json.template'), '.eslintrc.json');
     } catch(error) {
-        console.log(`Error copying .eslintrc.json into project: ${error}`);
+        console.error(`Error copying .eslintrc.json into project: ${error}`);
         exit(1);
     }
 }
@@ -89,7 +89,21 @@ export function createIndexFile(): void {
     try {
         fs.copyFileSync(path.join(__dirname, '../assets/file-templates/index.ts.template'), 'src/index.ts');
     } catch(error) {
-        console.log(`Error copying index.ts into project: ${error}`);
+        console.error(`Error copying index.ts into project: ${error}`);
+        exit(1);
+    }
+}
+
+/**
+ * Create a test file tests/index.test.ts with a single test
+ * checking the project output
+ */
+export function createIndexTestFile(): void {
+    console.log('*** Creating tests/index.test.ts ***');
+    try {
+        fs.copyFileSync(path.join(__dirname, '../assets/file-templates/index.test.ts.template'), 'test/index.test.ts');
+    } catch(error) {
+        console.error(`Error copying index.test.ts into project: ${error}`);
         exit(1);
     }
 }
