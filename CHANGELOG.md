@@ -1,3 +1,6 @@
+## Version 0.3.1
+- Update README for `mk-ts-app`
+
 ## Version 0.3.0
 - Add all core files (config, source, info, ect)
 - Add optional Jest support
