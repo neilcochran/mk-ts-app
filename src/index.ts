@@ -10,6 +10,7 @@ import {
     createIndexFile,
     createPackageJsonFile,
     createProjectDirectory,
+    createReadmeFile,
     createTSConfigJsonFile,
 } from './file-utils';
 import * as commandExists from 'command-exists';
@@ -104,6 +105,8 @@ const QUESTIONS = [
     createProjectDirectory(answers.projectName);
     //move into the new project directory we just created
     process.chdir(answers.projectName);
+    //create README.md file
+    createReadmeFile(answers);
     //create license file
     createLicenseFile(answers);
     //create CHANGELOG.md
