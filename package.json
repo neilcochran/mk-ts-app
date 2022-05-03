@@ -1,6 +1,6 @@
 {
   "name": "mk-ts-app",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "author": "neilcochran <dev.neil.cochran@pm.me>",
   "description": "Streamline your Typescript/Node project set up with mk-ts-app. Spend time coding, not setting up your project! This interactive command line app will walk you through a complete project set up in seconds!",
   "repository": {
