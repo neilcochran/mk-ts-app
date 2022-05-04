@@ -132,7 +132,6 @@ export function createIndexFile(): void {
 
 /**
  * Create a test file tests/index.test.ts with a single test
- * checking the project output
  */
 export function createIndexTestFile(): void {
     console.log('*** Creating tests/index.test.ts ***');
@@ -141,5 +140,17 @@ export function createIndexTestFile(): void {
     } catch(error) {
         console.error(`Error copying index.test.ts into project: ${error}`);
         exit(1);
+    }
+}
+
+/**
+ * Create a .gitignore file in the project's root
+ */
+export function createGitIgnoreFile(): void {
+    console.log('*** Creating .gitignore ***');
+    try{
+        fs.copyFileSync(path.join(__dirname, '../assets/file-templates/.gitignore.template'), '.gitignore');
+    } catch(error) {
+        console.error(`Error copying .gitignore into project: ${error}`);
     }
 }
