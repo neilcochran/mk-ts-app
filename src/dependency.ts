@@ -103,11 +103,11 @@ export function installOptionalDependencies(answers: Answers): void {
     if(answers.useJest) {
         console.log('*** Adding Jest testing support ***');
         addDependency(answers.packageManager, {
-            name: 'jest@^27.0.0', //latest version of jest currently supported by ts-jest
+            name: 'jest',
             saveDev: true
         });
         addDependency(answers.packageManager, {
-            name: '@types/jest@^27.0.0', //match jest version
+            name: '@types/jest',
             saveDev: true
         });
         addDependency(answers.packageManager, {

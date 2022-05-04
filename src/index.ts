@@ -1,150 +1,77 @@
 #!/usr/bin/env node
 
-import inquirer, { Answers, Question } from 'inquirer';
-import * as fs from 'fs';
-import path from 'path';
-import isValid from 'is-valid-path';
-import { createLicenseFile, LICENSES } from './license';
-import { getDefaultAuthor, openProject } from './utils';
+import inquirer from 'inquirer';
+import { createLicenseFile } from './license';
+import { initializeGitRepo, openFolder, openProjectVSCode } from './utils';
 import {
     createChangelogFile,
     createESLintConfigJsonFile,
+    createGitIgnoreFile,
     createIndexFile,
     createPackageJsonFile,
     createProjectDirectory,
     createReadmeFile,
     createTSConfigJsonFile,
 } from './file-utils';
-import * as commandExists from 'command-exists';
 import { installCommonDependencies, installOptionalDependencies } from './dependency';
-
-/**
- * Construct all questions to be passed to inquirer
- */
-const QUESTIONS = [
-    {
-        type: 'input',
-        name: 'projectName',
-        message: 'Enter project name:',
-        filter(value: string): string {
-            return value.trim();
-        },
-        validate(value: string): boolean | string {
-            const trimmedValue = value.trim();
-            if(trimmedValue === '') {
-                return 'Project name cannot be blank';
-            }
-            if(fs.existsSync(trimmedValue)) {
-                return `A directory with that name already exists: '${trimmedValue}'`;
-            }
-            if(!isValid(trimmedValue)) {
-                return `Project name is not a valid directory name: '${trimmedValue}'`;
-            }
-            //don't allow users to pass a path, enforce that this script is run in the desired parent directory
-            if(path.basename(trimmedValue) !== trimmedValue) {
-                return 'Cannot use a path for a project name. Please run this script in the desired parent directory and pass a project name only';
-            }
-            return true;
-        }
-    },
-    {
-        type: 'input',
-        name: 'author',
-        message: 'Author?',
-        default: getDefaultAuthor()
-    },
-    {
-        type: 'list',
-        name: 'packageManager',
-        message: 'Which package manager would you like to use?',
-        choices: ['yarn', 'npm'],
-        default: 'yarn'
-    },
-    {
-        type: 'list',
-        name: 'license',
-        message: 'Which license would you like to use?',
-        choices: LICENSES.map(license => license.displayName),
-        default: 'MIT'
-    },
-    {
-        type: 'input',
-        name: 'licenseFullName',
-        message: 'Please enter a full name for the license copywriter (required by the license you selected):',
-        filter(value: string): string {
-            return value.trim();
-        },
-        validate(value: string): boolean | string {
-            if(value === '') {
-                return 'Please enter a non-empty full name';
-            }
-            return true;
-        },
-        when(answers: Answers): boolean {
-            return LICENSES.find(license => license.displayName === answers.license)?.requiresFullName ?? false;
-        }
-    },
-    {
-        type: 'confirm',
-        name: 'useJest',
-        message: 'Would you like to add unit testing support via Jest?',
-        default: true
-    },
-    {
-        type: 'confirm',
-        name: 'addTypeDocSupport',
-        message: 'Would you like to add TypeDoc support (generates HTML documentation from TSDoc comments)?',
-        default: true
-    }
-];
+import { POST_CREATION_QUESTIONS, PRE_CREATION_QUESTIONS } from './question';
 
 /**
  * Prompt the user for all the inquirer questions and create the project based on the answers received
  */
 (async function main(): Promise<void> {
-    const answers = await inquirer.prompt(QUESTIONS);
+
+    //Ask all pre project creation questions
+    const preProjAnswers = await inquirer.prompt(PRE_CREATION_QUESTIONS);
+
     //create project dir and src dir
-    createProjectDirectory(answers.projectName);
+    createProjectDirectory(preProjAnswers.projectName);
     //move into the new project directory we just created
-    process.chdir(answers.projectName);
+    process.chdir(preProjAnswers.projectName);
+
     //create README.md file
-    createReadmeFile(answers);
+    createReadmeFile(preProjAnswers);
+
     //create license file
-    createLicenseFile(answers);
+    createLicenseFile(preProjAnswers);
+
     //create CHANGELOG.md
     createChangelogFile();
+
     //create package.json
-    createPackageJsonFile(answers);
+    createPackageJsonFile(preProjAnswers);
+
     //create tsconfig.json
     createTSConfigJsonFile();
+
     //create .eslintrc.json
     createESLintConfigJsonFile();
+
     //create src/index.ts
     createIndexFile();
-    //install all common dependencies
-    installCommonDependencies(answers.packageManager);
-    //install any optional dependencies the user may have chosen
-    installOptionalDependencies(answers);
-    console.log(`Your project '${answers.projectName}' has been fully set up and is ready to be used!`);
 
-    //Now that the project is set up - offer to open it.
-    let vsCodeCmdExists = false;
-    const openProjectQuestion: Question = {
-        type: 'confirm',
-        name: 'openProject',
-        default: true
-    };
-    //check if VSCode is available on the command line
-    if(commandExists.sync('code')) {
-        vsCodeCmdExists = true;
-        openProjectQuestion.message = 'Would you like to open the project now with VSCode?';
+    //install all common dependencies
+    installCommonDependencies(preProjAnswers.packageManager);
+
+    //install any optional dependencies the user may have chosen
+    installOptionalDependencies(preProjAnswers);
+
+    //check if we should initialize the git repository and create a .gitignore file
+    if(preProjAnswers.initializeGit) {
+        initializeGitRepo();
+        createGitIgnoreFile();
     }
-    else {
-        openProjectQuestion.message = 'Would you like to the project location now?';
+
+    console.log(`\nYour project '${preProjAnswers.projectName}' has been fully set up and is ready to be used!\n`);
+
+    //Now that the project is set up - ask any follow up questions
+    const postProjAnswers = await inquirer.prompt(POST_CREATION_QUESTIONS);
+
+    //check if we should open the project
+    if(postProjAnswers.openProjectVSCode) {
+        openProjectVSCode();
     }
-    //prompt the user for the question and get the answer
-    const openProjectAnswer = await inquirer.prompt([openProjectQuestion]);
-    if(openProjectAnswer.openProject) {
-        openProject(openProjectAnswer, vsCodeCmdExists);
+    else if(postProjAnswers.openProjectLocation) {
+        openFolder();
     }
 })();
