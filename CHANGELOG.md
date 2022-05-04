@@ -1,3 +1,7 @@
+## Version 1.0.0
+- Official stable version
+- Update README
+
 ## Version 0.4.2
 - Add optional git repository initialization and creation of a .gitignore file
 
