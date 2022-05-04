@@ -1,3 +1,6 @@
+## Version 0.4.2
+- Add optional git repository initialization and creation of a .gitignore file
+
 ## Version 0.4.1
 - Move `command-exists` from `devDependencies` to `dependencies` as it is needed at runtime
 

@@ -1,6 +1,5 @@
 import * as child_process from 'child_process';
 import * as fs from 'fs';
-import { Answers } from 'inquirer';
 import os from 'os';
 
 /**
@@ -27,33 +26,36 @@ export function getDefaultAuthor(): string | undefined {
 }
 
 /**
- * Determines if the project should be opened. If it is to be opened and hasVSCodeCommand is true
- * the project will be opened in VSCode. If it is to be opened and hasVSCodeCommand is false, it will be opened in
- * the OS's native file explorer
+ * Add a script to the package.json's scripts
  *
- * @param openProjAnswer - The Answers object containing the response to our openProject question
-*
- * @param hasVSCodeCommand - If the users OS has the VSCode 'code' command available
+ * @param scriptName - The name of the script
+ * @param script - The contents of the script
  */
-export function openProject(openProjAnswer: Answers, hasVSCodeCommand: boolean): void {
-    if(openProjAnswer.openProject) {
-        if(hasVSCodeCommand) {
-            try {
-                child_process.execSync('code .');
-            } catch(error) {
-                console.error(`Failed to open project with VSCode due to: ${error}`);
-            }
-        }
-        else {
-            openFolderForOS();
-        }
+export function addScriptToPackageJson(scriptName: string, script: string): void {
+    try {
+        const packageJson = JSON.parse(fs.readFileSync('package.json').toString());
+        packageJson.scripts[scriptName] = script;
+        fs.writeFileSync('package.json', JSON.stringify(packageJson, undefined, 4));
+    } catch(error) {
+        console.error(`An error occurred adding to a script to package.json: ${error}`);
     }
 }
 
 /**
- * Open a folder in the OS's native file explorer
+ * Open the project (current directory) in VSCode
  */
-function openFolderForOS(): void {
+export function openProjectVSCode(): void {
+    try {
+        child_process.execSync('code .');
+    } catch(error) {
+        console.error(`Failed to open project with VSCode due to: ${error}`);
+    }
+}
+
+/**
+ * Open the project (current directory) in the OS's native file explorer
+ */
+export function openFolder(): void {
     let command = '';
     switch(os.type()) {
         case 'Windows_NT':
@@ -73,17 +75,13 @@ function openFolderForOS(): void {
 }
 
 /**
- * Add a script to the package.json's scripts
- *
- * @param scriptName - The name of the script
- * @param script - The contents of the script
+ * Initialize a git repository
  */
-export function addScriptToPackageJson(scriptName: string, script: string): void {
+export function initializeGitRepo(): void {
+    console.log('*** Initializing git repository ***');
     try {
-        const packageJson = JSON.parse(fs.readFileSync('package.json').toString());
-        packageJson.scripts[scriptName] = script;
-        fs.writeFileSync('package.json', JSON.stringify(packageJson, undefined, 4));
+        child_process.execSync('git init');
     } catch(error) {
-        console.error(`An error occurred adding to a script to package.json: ${error}`);
+        console.error(`Failed to initialize a git repository due to: ${error}`);
     }
 }
